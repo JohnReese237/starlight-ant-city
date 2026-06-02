@@ -1074,10 +1074,10 @@
       content: "";
       position: absolute;
       inset: 0;
-      background-image: url("assets/建设进程/construction16.png");
+      background-image: url("assets/construction/rocket_progress_sheet.png");
       background-repeat: no-repeat;
-      background-position: center bottom;
-      background-size: contain;
+      background-position: 100% 0;
+      background-size: 1000% 100%;
       clip-path: inset(0 38% 0 40%);
       image-rendering: pixelated;
     }
@@ -1800,9 +1800,13 @@
       transform: translateX(-50%);
       z-index: 2;
       background-image: var(--construction-image-src);
-      background-position: center bottom;
+      background-position:
+        calc(var(--construction-sub-frame, 0) * -1 * var(--construction-image-width))
+        0;
       background-repeat: no-repeat;
-      background-size: contain;
+      background-size:
+        calc(var(--construction-image-width) * var(--construction-sheet-cols, 10))
+        var(--construction-image-height);
       image-rendering: pixelated;
       opacity: var(--asset-alpha, 0);
       transition: opacity 0.45s ease, filter 0.45s ease;
@@ -1967,6 +1971,120 @@
 
     .ant[data-sub-action="climb"] .ant-cargo {
       transform: translate(6px, -2px) scale(var(--cargo-scale, 0.34));
+    }
+
+    .ant[data-mini-event] .ant-visual {
+      filter: saturate(1.04) brightness(1.03);
+    }
+
+    .ant[data-mini-event]::after {
+      content: "";
+      position: absolute;
+      left: 44px;
+      bottom: 34px;
+      width: 14px;
+      height: 14px;
+      pointer-events: none;
+      image-rendering: pixelated;
+      opacity: 0.92;
+      transform-origin: center bottom;
+    }
+
+    .ant[data-mini-event="sit"]::after,
+    .ant[data-mini-event="drowsy"]::after {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(214, 232, 255, 0.9);
+      box-shadow:
+        7px -7px 0 rgba(214, 232, 255, 0.62),
+        15px -15px 0 rgba(214, 232, 255, 0.38);
+      animation: miniBubbleFloat 2.8s ease-in-out infinite;
+    }
+
+    .ant[data-mini-event="chat"]::after {
+      width: 18px;
+      height: 9px;
+      border: 2px solid rgba(221, 237, 255, 0.86);
+      background: rgba(20, 36, 64, 0.68);
+      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .ant[data-mini-event="stargaze"]::after,
+    .ant[data-mini-event="rocketGaze"]::after {
+      width: 4px;
+      height: 4px;
+      background: #ffe99d;
+      box-shadow:
+        -5px 0 0 #ffe99d,
+        5px 0 0 #ffe99d,
+        0 -5px 0 #ffe99d,
+        0 5px 0 #ffe99d;
+      animation: miniStarTwinkle 2.4s ease-in-out infinite;
+    }
+
+    .ant[data-mini-event="flag"]::after {
+      width: 4px;
+      height: 22px;
+      background: #e6d48a;
+      box-shadow: 4px 2px 0 #e35f5f, 8px 2px 0 #e35f5f, 4px 6px 0 #f2b45d, 8px 6px 0 #f2b45d;
+      animation: miniFlagWave 1.8s steps(2) infinite;
+    }
+
+    .ant[data-mini-event="inspect"]::after {
+      width: 18px;
+      height: 5px;
+      background: #b8c7dd;
+      box-shadow: 12px -4px 0 #6fcfff;
+      transform: rotate(-35deg);
+    }
+
+    .ant[data-mini-event="assist"]::after,
+    .ant[data-mini-event="wrongMaterial"]::after {
+      width: 20px;
+      height: 10px;
+      background: #9aa6bc;
+      border: 2px solid #414a60;
+      bottom: 18px;
+      left: 34px;
+    }
+
+    .star-bug {
+      position: absolute;
+      left: -3%;
+      bottom: var(--bug-y, 54%);
+      width: 5px;
+      height: 5px;
+      pointer-events: none;
+      background: #fff2a9;
+      box-shadow:
+        0 0 10px rgba(255, 234, 138, 0.58),
+        7px 2px 0 rgba(124, 220, 255, 0.72),
+        -6px 1px 0 rgba(124, 220, 255, 0.48);
+      animation: starBugFly var(--bug-dur, 8s) linear forwards;
+      z-index: 23;
+    }
+
+    @keyframes miniBubbleFloat {
+      0%, 100% { transform: translateY(0); opacity: 0.48; }
+      50% { transform: translateY(-5px); opacity: 0.92; }
+    }
+
+    @keyframes miniStarTwinkle {
+      0%, 100% { transform: scale(0.8); opacity: 0.55; }
+      50% { transform: scale(1.18); opacity: 0.96; }
+    }
+
+    @keyframes miniFlagWave {
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(6deg); }
+    }
+
+    @keyframes starBugFly {
+      from { transform: translateX(0) translateY(0); opacity: 0; }
+      12% { opacity: 0.8; }
+      82% { opacity: 0.8; }
+      to { transform: translateX(106vw) translateY(-18px); opacity: 0; }
     }
 
     .ground-foreground {
@@ -3310,7 +3428,8 @@
           </div>
 
           <div class="test-action-row" aria-label="测试操作">
-            <button type="button" id="testAddProgressButton">+5% 工程</button>
+            <button type="button" data-test-progress="1">+1% 工程</button>
+            <button type="button" data-test-progress="5">+5% 工程</button>
             <button type="button" id="testNextStageButton">跳到下一阶段</button>
           </div>
 
@@ -3613,23 +3732,11 @@
         celebrateSheet: "assets/sheets/ant_celebrate_sheet.png"
       },
       construction: {
-        frames: {
-          construction1: "assets/建设进程/construction1.png",
-          construction2: "assets/建设进程/construction2.png",
-          construction3: "assets/建设进程/construction3.png",
-          construction4: "assets/建设进程/construction4.png",
-          construction5: "assets/建设进程/construction5.png",
-          construction6: "assets/建设进程/construction6.png",
-          construction7: "assets/建设进程/construction7.png",
-          construction8: "assets/建设进程/construction8.png",
-          construction9: "assets/建设进程/construction9.png",
-          construction10: "assets/建设进程/construction10.png",
-          construction11: "assets/建设进程/construction11.png",
-          construction12: "assets/建设进程/construction12.png",
-          construction13: "assets/建设进程/construction13.png",
-          construction14: "assets/建设进程/construction14.png",
-          construction15: "assets/建设进程/construction15.png",
-          construction16: "assets/建设进程/construction16.png"
+        sheets: {
+          foundation: "assets/construction/foundation_progress_sheet.png",
+          tower: "assets/construction/tower_progress_sheet.png",
+          core: "assets/construction/core_progress_sheet.png",
+          rocket: "assets/construction/rocket_progress_sheet.png"
         }
       },
       launch: {
@@ -3767,11 +3874,40 @@
       }
     };
 
-    const CONSTRUCTION_FRAMES = {
-      foundation: ["construction1", "construction2", "construction3", "construction4"],
-      tower: ["construction5", "construction6", "construction7", "construction8"],
-      core: ["construction9", "construction10", "construction11", "construction12"],
-      rocket: ["construction13", "construction14", "construction15", "construction16"]
+    const constructionStageKeys = ["foundation", "tower", "core", "rocket"];
+    const CONSTRUCTION_SHEETS = {
+      foundation: {
+        assetKey: "constructionFoundationSheet",
+        src: bitmapAssetPaths.construction.sheets.foundation,
+        cols: 10,
+        rows: 1,
+        frameWidth: 554,
+        frameHeight: 292
+      },
+      tower: {
+        assetKey: "constructionTowerSheet",
+        src: bitmapAssetPaths.construction.sheets.tower,
+        cols: 10,
+        rows: 1,
+        frameWidth: 554,
+        frameHeight: 292
+      },
+      core: {
+        assetKey: "constructionCoreSheet",
+        src: bitmapAssetPaths.construction.sheets.core,
+        cols: 10,
+        rows: 1,
+        frameWidth: 554,
+        frameHeight: 292
+      },
+      rocket: {
+        assetKey: "constructionRocketSheet",
+        src: bitmapAssetPaths.construction.sheets.rocket,
+        cols: 10,
+        rows: 1,
+        frameWidth: 554,
+        frameHeight: 292
+      }
     };
 
     const LAUNCH_SITE_LAYOUT = {
@@ -3928,6 +4064,10 @@
       antJetpackClimbSheet: false,
       antCelebrateSheet: false,
       materialSheet: false,
+      constructionFoundationSheet: false,
+      constructionTowerSheet: false,
+      constructionCoreSheet: false,
+      constructionRocketSheet: false,
       constructionPropsSheet: false,
       launchBaseCoreComplete: false,
       rocketBodySheet: false,
@@ -3999,30 +4139,182 @@
       [90, 70, 4, "6.3s", "1.5s"]
     ];
 
-    const constructionTargetOffsets = {
+    const constructionRouteTargets = {
       foundation: [
-        { x: -18.8, y: -0.7, cargo: "cement", routeProfile: "foundation" },
-        { x: -12.4, y: -0.2, cargo: "gravel", routeProfile: "foundation" },
-        { x: -5.8, y: 0.1, cargo: "rebar", routeProfile: "foundation" },
-        { x: -0.8, y: -0.3, cargo: "bolts", routeProfile: "foundation" }
+        {
+          frameMin: 0,
+          frameMax: 2,
+          points: [
+            { id: "survey-left", x: -20.8, y: 19.2, cargo: "cement", routeProfile: "foundation", allowedTaskTypes: ["carry", "deliver"] },
+            { id: "survey-right", x: -8.8, y: 19.6, cargo: "gravel", routeProfile: "foundation", allowedTaskTypes: ["carry", "inspect"] },
+            { id: "pit-edge-a", x: -17.4, y: 16.8, cargo: "gravel", routeProfile: "foundation", allowedTaskTypes: ["carry", "deliver"] },
+            { id: "pit-edge-b", x: -4.4, y: 17.2, cargo: "cement", routeProfile: "foundation", allowedTaskTypes: ["carry"] },
+            { id: "mark-stake-a", x: -15.2, y: 22.8, cargo: "bolts", routeProfile: "foundation", allowedTaskTypes: ["inspect"] },
+            { id: "mark-stake-b", x: -1.8, y: 22.0, cargo: "bolts", routeProfile: "foundation", allowedTaskTypes: ["deliver"] },
+            { id: "gravel-lane-a", x: -11.0, y: 16.4, cargo: "gravel", routeProfile: "foundation", allowedTaskTypes: ["carry"] },
+            { id: "gravel-lane-b", x: -6.6, y: 18.9, cargo: "gravel", routeProfile: "foundation", allowedTaskTypes: ["assist"] }
+          ]
+        },
+        {
+          frameMin: 3,
+          frameMax: 5,
+          points: [
+            { id: "form-left", x: -21.6, y: 21.2, cargo: "cement", routeProfile: "foundation", allowedTaskTypes: ["carry", "deliver"] },
+            { id: "form-front", x: -15.6, y: 18.2, cargo: "cement", routeProfile: "foundation", allowedTaskTypes: ["deliver"] },
+            { id: "form-center", x: -10.8, y: 20.4, cargo: "rebar", routeProfile: "foundation", allowedTaskTypes: ["carry", "assist"] },
+            { id: "form-right", x: -4.2, y: 21.6, cargo: "cement", routeProfile: "foundation", allowedTaskTypes: ["carry"] },
+            { id: "mesh-a", x: -18.8, y: 24.8, cargo: "rebar", routeProfile: "foundation", allowedTaskTypes: ["inspect"] },
+            { id: "mesh-b", x: -12.4, y: 25.2, cargo: "rebar", routeProfile: "foundation", allowedTaskTypes: ["carry"] },
+            { id: "mesh-c", x: -6.0, y: 24.6, cargo: "rebar", routeProfile: "foundation", allowedTaskTypes: ["deliver"] },
+            { id: "corner-bolts", x: 0.4, y: 22.6, cargo: "bolts", routeProfile: "foundation", allowedTaskTypes: ["inspect", "deliver"] }
+          ]
+        },
+        {
+          frameMin: 6,
+          frameMax: 9,
+          points: [
+            { id: "bolt-left", x: -21.0, y: 25.0, cargo: "bolts", routeProfile: "foundation", allowedTaskTypes: ["inspect", "deliver"] },
+            { id: "bolt-center", x: -13.6, y: 27.0, cargo: "bolts", routeProfile: "foundation", allowedTaskTypes: ["deliver"] },
+            { id: "bolt-right", x: -4.8, y: 26.2, cargo: "bolts", routeProfile: "foundation", allowedTaskTypes: ["inspect"] },
+            { id: "support-left", x: -20.2, y: 31.8, cargo: "cement", routeProfile: "foundation", allowedTaskTypes: ["carry"] },
+            { id: "support-right", x: -1.8, y: 31.2, cargo: "cement", routeProfile: "foundation", allowedTaskTypes: ["carry", "assist"] },
+            { id: "platform-front", x: -16.6, y: 22.8, cargo: "plate", routeProfile: "foundation", allowedTaskTypes: ["deliver"] },
+            { id: "platform-mid", x: -9.8, y: 29.6, cargo: "plate", routeProfile: "foundation", allowedTaskTypes: ["inspect"] },
+            { id: "platform-right", x: -2.8, y: 23.4, cargo: "plate", routeProfile: "foundation", allowedTaskTypes: ["deliver"] }
+          ]
+        }
       ],
       tower: [
-        { x: -11.8, y: 2.0, cargo: "beam", routeProfile: "tower" },
-        { x: -8.9, y: 10.1, cargo: "plate", routeProfile: "tower" },
-        { x: -5.9, y: 19.7, cargo: "screws", routeProfile: "tower" },
-        { x: -3.0, y: 27.5, cargo: "cable", routeProfile: "tower" }
+        {
+          frameMin: 0,
+          frameMax: 2,
+          points: [
+            { id: "tower-foot-l", x: -15.8, y: 9.6, cargo: "beam", routeProfile: "tower", allowedTaskTypes: ["carry", "deliver"] },
+            { id: "tower-foot-r", x: -1.0, y: 9.2, cargo: "beam", routeProfile: "tower", allowedTaskTypes: ["carry"] },
+            { id: "base-column-l", x: -15.2, y: 23.8, cargo: "screws", routeProfile: "tower", allowedTaskTypes: ["inspect"] },
+            { id: "base-column-r", x: -1.8, y: 23.0, cargo: "screws", routeProfile: "tower", allowedTaskTypes: ["deliver"] },
+            { id: "low-crossbar-a", x: -13.0, y: 36.1, cargo: "plate", routeProfile: "tower", allowedTaskTypes: ["carry"] },
+            { id: "low-crossbar-b", x: -4.6, y: 35.7, cargo: "plate", routeProfile: "tower", allowedTaskTypes: ["assist"] },
+            { id: "tool-platform-l", x: -18.4, y: 15.0, cargo: "screws", routeProfile: "tower", allowedTaskTypes: ["inspect"] },
+            { id: "tool-platform-r", x: 2.8, y: 14.6, cargo: "screws", routeProfile: "tower", allowedTaskTypes: ["deliver"] }
+          ]
+        },
+        {
+          frameMin: 3,
+          frameMax: 5,
+          points: [
+            { id: "brace-low-l", x: -15.4, y: 6.3, cargo: "beam", routeProfile: "tower", allowedTaskTypes: ["climb", "deliver"] },
+            { id: "brace-low-r", x: -1.6, y: 8.0, cargo: "beam", routeProfile: "tower", allowedTaskTypes: ["climb"] },
+            { id: "middle-platform-l", x: -18.4, y: 18.6, cargo: "plate", routeProfile: "tower", allowedTaskTypes: ["climb", "assist"] },
+            { id: "middle-platform-r", x: 3.0, y: 17.8, cargo: "plate", routeProfile: "tower", allowedTaskTypes: ["deliver"] },
+            { id: "middle-cable-a", x: 2.8, y: 27.5, cargo: "cable", routeProfile: "tower", allowedTaskTypes: ["inspect"] },
+            { id: "middle-cable-b", x: -5.2, y: 29.8, cargo: "cable", routeProfile: "tower", allowedTaskTypes: ["climb"] },
+            { id: "brace-high-l", x: -14.8, y: 33.5, cargo: "screws", routeProfile: "tower", allowedTaskTypes: ["climb"] },
+            { id: "brace-high-r", x: -0.4, y: 35.5, cargo: "screws", routeProfile: "tower", allowedTaskTypes: ["inspect"] }
+          ]
+        },
+        {
+          frameMin: 6,
+          frameMax: 9,
+          points: [
+            { id: "service-platform", x: -18.6, y: 27.2, cargo: "plate", routeProfile: "tower", allowedTaskTypes: ["climb", "inspect"] },
+            { id: "top-column-l", x: -15.2, y: 35.0, cargo: "beam", routeProfile: "tower", allowedTaskTypes: ["climb"] },
+            { id: "top-column-r", x: -1.4, y: 34.6, cargo: "beam", routeProfile: "tower", allowedTaskTypes: ["climb", "deliver"] },
+            { id: "cable-run", x: 3.8, y: 28.8, cargo: "cable", routeProfile: "tower", allowedTaskTypes: ["inspect"] },
+            { id: "crane-arm", x: 11.4, y: 35.6, cargo: "beam", routeProfile: "tower", allowedTaskTypes: ["climb"] },
+            { id: "arm-joint", x: 6.6, y: 24.8, cargo: "screws", routeProfile: "tower", allowedTaskTypes: ["deliver"] },
+            { id: "clamp-upper", x: 10.8, y: 13.2, cargo: "screws", routeProfile: "tower", allowedTaskTypes: ["inspect"] },
+            { id: "clamp-lower", x: 9.6, y: 3.0, cargo: "screws", routeProfile: "tower", allowedTaskTypes: ["assist"] }
+          ]
+        }
       ],
       core: [
-        { x: -10.2, y: 2.5, cargo: "module", routeProfile: "core" },
-        { x: -6.1, y: 7.3, cargo: "crystal", routeProfile: "core" },
-        { x: -2.6, y: 5.8, cargo: "battery", routeProfile: "core" },
-        { x: 0.9, y: 10.7, cargo: "energy", routeProfile: "core" }
+        {
+          frameMin: 0,
+          frameMax: 2,
+          points: [
+            { id: "core-base-l", x: -12.8, y: 9.8, cargo: "module", routeProfile: "core", allowedTaskTypes: ["carry", "deliver"] },
+            { id: "core-base-r", x: 0.8, y: 8.8, cargo: "module", routeProfile: "core", allowedTaskTypes: ["carry"] },
+            { id: "control-box", x: -20.4, y: 20.0, cargo: "gear", routeProfile: "core", allowedTaskTypes: ["inspect"] },
+            { id: "pipe-left", x: -15.6, y: 2.5, cargo: "cable", routeProfile: "core", allowedTaskTypes: ["deliver"] },
+            { id: "pipe-right", x: 5.4, y: 4.0, cargo: "cable", routeProfile: "core", allowedTaskTypes: ["inspect"] },
+            { id: "console-start", x: 9.8, y: 18.6, cargo: "battery", routeProfile: "core", allowedTaskTypes: ["deliver"] },
+            { id: "cooling-left", x: -5.8, y: 34.2, cargo: "gear", routeProfile: "core", allowedTaskTypes: ["assist"] },
+            { id: "cooling-right", x: 3.2, y: 36.1, cargo: "gear", routeProfile: "core", allowedTaskTypes: ["inspect"] }
+          ]
+        },
+        {
+          frameMin: 3,
+          frameMax: 5,
+          points: [
+            { id: "console-panel", x: 9.8, y: 5.2, cargo: "module", routeProfile: "core", allowedTaskTypes: ["inspect"] },
+            { id: "cooler-stack", x: -5.0, y: 22.6, cargo: "gear", routeProfile: "core", allowedTaskTypes: ["deliver"] },
+            { id: "crystal-base", x: -0.8, y: 18.2, cargo: "crystal", routeProfile: "core", allowedTaskTypes: ["carry"] },
+            { id: "crystal-left", x: -5.4, y: 35.6, cargo: "crystal", routeProfile: "core", allowedTaskTypes: ["inspect"] },
+            { id: "crystal-right", x: 3.8, y: 35.2, cargo: "energy", routeProfile: "core", allowedTaskTypes: ["deliver"] },
+            { id: "meter-left", x: -20.0, y: 10.3, cargo: "battery", routeProfile: "core", allowedTaskTypes: ["inspect"] },
+            { id: "pipe-loop-a", x: -12.6, y: 1.6, cargo: "cable", routeProfile: "core", allowedTaskTypes: ["assist"] },
+            { id: "pipe-loop-b", x: 8.0, y: 12.7, cargo: "cable", routeProfile: "core", allowedTaskTypes: ["inspect"] }
+          ]
+        },
+        {
+          frameMin: 6,
+          frameMax: 9,
+          points: [
+            { id: "energy-ring-l", x: -8.6, y: 28.4, cargo: "energy", routeProfile: "core", allowedTaskTypes: ["inspect"] },
+            { id: "energy-ring-r", x: 6.8, y: 27.9, cargo: "energy", routeProfile: "core", allowedTaskTypes: ["deliver"] },
+            { id: "core-glow-base", x: -0.6, y: 17.8, cargo: "crystal", routeProfile: "core", allowedTaskTypes: ["inspect"] },
+            { id: "core-top", x: -0.2, y: 35.9, cargo: "energy", routeProfile: "core", allowedTaskTypes: ["inspect"] },
+            { id: "all-pipes-left", x: -23.0, y: 8.1, cargo: "cable", routeProfile: "core", allowedTaskTypes: ["deliver"] },
+            { id: "all-pipes-right", x: 13.6, y: 7.7, cargo: "cable", routeProfile: "core", allowedTaskTypes: ["assist"] },
+            { id: "system-front", x: -11.0, y: 1.8, cargo: "module", routeProfile: "core", allowedTaskTypes: ["carry"] },
+            { id: "system-back", x: 8.4, y: 2.5, cargo: "battery", routeProfile: "core", allowedTaskTypes: ["inspect"] }
+          ]
+        }
       ],
       rocket: [
-        { x: -8.6, y: 2.1, cargo: "nozzle", routeProfile: "rocket" },
-        { x: -4.4, y: 7.7, cargo: "segment", routeProfile: "rocket" },
-        { x: -3.0, y: 16.4, cargo: "plate", routeProfile: "rocket" },
-        { x: -6.6, y: 12.5, cargo: "energy", routeProfile: "rocket" }
+        {
+          frameMin: 0,
+          frameMax: 2,
+          points: [
+            { id: "nozzle-left", x: 8.4, y: 2.5, cargo: "nozzle", routeProfile: "rocket", allowedTaskTypes: ["carry", "deliver"] },
+            { id: "nozzle-right", x: 18.8, y: 1.4, cargo: "nozzle", routeProfile: "rocket", allowedTaskTypes: ["assist"] },
+            { id: "rocket-base", x: 13.8, y: 15.5, cargo: "segment", routeProfile: "rocket", allowedTaskTypes: ["deliver"] },
+            { id: "lower-shell-l", x: 9.8, y: 27.7, cargo: "plate", routeProfile: "rocket", allowedTaskTypes: ["carry"] },
+            { id: "lower-shell-r", x: 18.2, y: 27.4, cargo: "plate", routeProfile: "rocket", allowedTaskTypes: ["inspect"] },
+            { id: "fin-left", x: 3.2, y: 7.9, cargo: "plate", routeProfile: "rocket", allowedTaskTypes: ["deliver"] },
+            { id: "fin-right", x: 24.8, y: 7.5, cargo: "plate", routeProfile: "rocket", allowedTaskTypes: ["assist"] },
+            { id: "side-check-low", x: 6.0, y: 35.0, cargo: "screws", routeProfile: "rocket", allowedTaskTypes: ["inspect"] }
+          ]
+        },
+        {
+          frameMin: 3,
+          frameMax: 5,
+          points: [
+            { id: "mid-body-l", x: 9.0, y: 11.8, cargo: "segment", routeProfile: "rocket", allowedTaskTypes: ["carry"] },
+            { id: "mid-body-r", x: 18.8, y: 11.5, cargo: "segment", routeProfile: "rocket", allowedTaskTypes: ["deliver"] },
+            { id: "window-panel", x: 14.0, y: 26.6, cargo: "plate", routeProfile: "rocket", allowedTaskTypes: ["inspect"] },
+            { id: "window-rim", x: 20.8, y: 26.9, cargo: "screws", routeProfile: "rocket", allowedTaskTypes: ["inspect"] },
+            { id: "fuel-line-l", x: 6.6, y: 15.6, cargo: "energy", routeProfile: "rocket", allowedTaskTypes: ["deliver"] },
+            { id: "fuel-line-r", x: 22.2, y: 16.9, cargo: "energy", routeProfile: "rocket", allowedTaskTypes: ["assist"] },
+            { id: "body-seam-low", x: 6.8, y: 0.9, cargo: "screws", routeProfile: "rocket", allowedTaskTypes: ["inspect"] },
+            { id: "body-seam-high", x: 21.6, y: 35.0, cargo: "screws", routeProfile: "rocket", allowedTaskTypes: ["inspect"] }
+          ]
+        },
+        {
+          frameMin: 6,
+          frameMax: 9,
+          points: [
+            { id: "upper-body-l", x: 9.8, y: 26.9, cargo: "segment", routeProfile: "rocket", allowedTaskTypes: ["deliver"] },
+            { id: "upper-body-r", x: 18.4, y: 26.7, cargo: "segment", routeProfile: "rocket", allowedTaskTypes: ["carry"] },
+            { id: "nose-cone", x: 14.0, y: 35.0, cargo: "plate", routeProfile: "rocket", allowedTaskTypes: ["inspect"] },
+            { id: "clamp-upper", x: 4.8, y: 22.9, cargo: "screws", routeProfile: "rocket", allowedTaskTypes: ["inspect"] },
+            { id: "clamp-lower", x: 4.8, y: 15.8, cargo: "screws", routeProfile: "rocket", allowedTaskTypes: ["deliver"] },
+            { id: "ready-base", x: 12.4, y: 1.7, cargo: "energy", routeProfile: "rocket", allowedTaskTypes: ["inspect"] },
+            { id: "ready-side", x: 25.8, y: 8.0, cargo: "energy", routeProfile: "rocket", allowedTaskTypes: ["inspect"] },
+            { id: "launch-check", x: 21.6, y: 0.5, cargo: "battery", routeProfile: "rocket", allowedTaskTypes: ["assist"] }
+          ]
+        }
       ]
     };
 
@@ -4155,6 +4447,11 @@
       noisyLowSpeedSeconds: 0,
       celebrationMode: false,
       returningToNest: false
+    };
+
+    const antMiniEventState = {
+      nextAt: 0,
+      starBugNextAt: 0
     };
 
     const launchBoardingState = {
@@ -4526,6 +4823,7 @@
     function setBuildProgress(nextProgress, options = {}) {
       const previousProgress = gameState.buildProgress;
       const previousStage = getBuildStageKey();
+      const previousFrame = getConstructionFrameIndex(previousProgress);
       const clamped = clamp(nextProgress, 0, 100);
       gameState.buildProgress = clamped;
       gameState.todayGain = clamp(clamped - gameState.todayStartProgress, 0, 100);
@@ -4540,7 +4838,8 @@
       }
 
       const nextStage = getBuildStageKey();
-      if (previousStage !== nextStage || options.forceCargoRefresh) {
+      const nextFrame = getConstructionFrameIndex(gameState.buildProgress);
+      if (previousStage !== nextStage || previousFrame !== nextFrame || options.forceCargoRefresh) {
         refreshWorkerTargetsForStage(Boolean(options.forceCargoRefresh));
       }
 
@@ -4554,6 +4853,8 @@
       if (gameState.phase !== "running" && !options.allowDuringSummary) return;
       if (gameState.buildProgress >= 100) return;
       const previous = gameState.buildProgress;
+      const previousStage = getBuildStageKey();
+      const previousFrame = getConstructionFrameIndex(previous);
       gameState.buildProgress = clamp(gameState.buildProgress + Math.max(0, amount), 0, 100);
       gameState.todayGain = clamp(gameState.buildProgress - gameState.todayStartProgress, 0, 100);
       recomputeBuildProgress();
@@ -4562,6 +4863,11 @@
       }
       renderWeeklyProgressHUD();
       renderConstructionVisuals();
+      const nextStage = getBuildStageKey();
+      const nextFrame = getConstructionFrameIndex(gameState.buildProgress);
+      if (previousStage !== nextStage || previousFrame !== nextFrame || options.forceCargoRefresh) {
+        refreshWorkerTargetsForStage(Boolean(options.forceCargoRefresh));
+      }
       updateLiveProgressNotice();
       maybeMarkLaunchReady(previous);
       if (!options.skipSave) savePersistentState();
@@ -4820,7 +5126,7 @@
     }
 
     function getConstructionAssetEntries() {
-      return Object.entries(bitmapAssetPaths.construction.frames).map(([key, path]) => [key, path]);
+      return Object.values(CONSTRUCTION_SHEETS).map((sheet) => [sheet.assetKey, sheet.src]);
     }
 
     function formatProgressPercent(value) {
@@ -4969,29 +5275,49 @@
       document.getElementById("siteBackStructures").innerHTML = makeWarningLights();
     }
 
-    function getStageFrameIndex(stageProgress) {
-      if (stageProgress < 25) return 0;
-      if (stageProgress < 50) return 1;
-      if (stageProgress < 75) return 2;
-      return 3;
+    function getConstructionFrameIndex(progress) {
+      const clamped = Math.max(0, Math.min(100, progress));
+      return Math.min(39, Math.floor(clamped / 2.5));
     }
 
-    function getConstructionFrameConfig(stageKey, progress) {
-      const frames = CONSTRUCTION_FRAMES[stageKey] || CONSTRUCTION_FRAMES.foundation;
-      const frameKey = frames[clamp(getStageFrameIndex(progress), 0, frames.length - 1)];
-      if (!frameKey || !criticalAssetStatus[frameKey]) {
+    function getConstructionFrameInfo(progress) {
+      const frameIndex = getConstructionFrameIndex(progress);
+      const stageIndex = Math.min(3, Math.floor(frameIndex / 10));
+      const stageKey = constructionStageKeys[stageIndex] || "foundation";
+      const subFrameIndex = frameIndex % 10;
+      const sheet = CONSTRUCTION_SHEETS[stageKey] || CONSTRUCTION_SHEETS.foundation;
+      return {
+        frameIndex,
+        stageIndex,
+        stageKey,
+        subFrameIndex,
+        sheetKey: sheet.assetKey
+      };
+    }
+
+    function getConstructionFrameConfig(progress) {
+      const frameInfo = getConstructionFrameInfo(progress);
+      const sheet = CONSTRUCTION_SHEETS[frameInfo.stageKey] || CONSTRUCTION_SHEETS.foundation;
+      if (!sheet || !criticalAssetStatus[sheet.assetKey]) {
         return null;
       }
-      const dimensions = assetDimensions[frameKey];
-      const src = bitmapAssetPaths.construction.frames[frameKey];
+      const dimensions = assetDimensions[sheet.assetKey];
+      const src = sheet.src;
       if (!dimensions || !src) {
         return null;
       }
       return {
-        key: frameKey,
+        key: `${sheet.assetKey}:${frameInfo.subFrameIndex}`,
+        sheetKey: sheet.assetKey,
+        stageKey: frameInfo.stageKey,
+        frameIndex: frameInfo.frameIndex,
+        subFrameIndex: frameInfo.subFrameIndex,
+        cols: sheet.cols,
         src,
-        width: dimensions.width,
-        height: dimensions.height
+        width: sheet.frameWidth,
+        height: sheet.frameHeight,
+        sheetWidth: dimensions.width,
+        sheetHeight: dimensions.height
       };
     }
 
@@ -5011,24 +5337,26 @@
     function updateConstructionStageScale() {
       const stage = document.querySelector(".construction-stage");
       if (!stage) return;
-      const frameKey = stage.dataset.frameKey;
-      const dimensions = assetDimensions[frameKey];
-      if (!dimensions) return;
-      const metrics = getConstructionRenderMetrics(dimensions);
+      const frameConfig = getConstructionFrameConfig(gameState.buildProgress);
+      if (!frameConfig) return;
+      const metrics = getConstructionRenderMetrics(frameConfig);
       stage.style.setProperty("--construction-box-width", `${metrics.boxWidth}px`);
       stage.style.setProperty("--construction-box-height", `${metrics.boxHeight}px`);
       stage.style.setProperty("--construction-image-width", `${metrics.imageWidth}px`);
       stage.style.setProperty("--construction-image-height", `${metrics.imageHeight}px`);
     }
 
-    function renderConstructionStage(stageKey, progress) {
-      const frameConfig = getConstructionFrameConfig(stageKey, progress);
+    function renderConstructionStage(progress) {
+      const frameConfig = getConstructionFrameConfig(progress);
       if (!frameConfig) return "";
       const metrics = getConstructionRenderMetrics(frameConfig);
       return `
         <div
           class="construction-stage"
           data-frame-key="${frameConfig.key}"
+          data-sheet-key="${frameConfig.sheetKey}"
+          data-stage-key="${frameConfig.stageKey}"
+          data-sub-frame-index="${frameConfig.subFrameIndex}"
           style="
             --construction-x:${CONSTRUCTION_STAGE_LAYOUT.anchorX}%;
             --construction-y:${CONSTRUCTION_STAGE_LAYOUT.groundY}%;
@@ -5036,6 +5364,8 @@
             --construction-box-height:${metrics.boxHeight}px;
             --construction-image-width:${metrics.imageWidth}px;
             --construction-image-height:${metrics.imageHeight}px;
+            --construction-sheet-cols:${frameConfig.cols};
+            --construction-sub-frame:${frameConfig.subFrameIndex};
             --asset-alpha:1;
             --construction-image-src:url('${frameConfig.src}');
           "
@@ -5048,41 +5378,7 @@
     }
 
     function renderSiteProps(activeStage) {
-      if (gameState.launchReady || gameState.launchInProgress || gameState.launchCelebrated || gameState.buildProgress >= 100) {
-        document.getElementById("sitePropsLayer").innerHTML = "";
-        return;
-      }
-      const propSets = {
-        foundation: [
-          [45.2, 15.0, 0.92, SITE_Z_INDEX.props, propSpriteIndex.toolbox],
-          [52.6, 15.0, 0.92, SITE_Z_INDEX.props, propSpriteIndex.rebarStack],
-          [63.2, 15.0, 0.98, SITE_Z_INDEX.propsFront, propSpriteIndex.barrier]
-        ],
-        tower: [
-          [43.0, 15.1, 0.92, SITE_Z_INDEX.props, propSpriteIndex.toolbox],
-          [56.8, 15.0, 0.92, SITE_Z_INDEX.props, propSpriteIndex.plateStack],
-          [66.8, 15.0, 0.94, SITE_Z_INDEX.propsFront, propSpriteIndex.cableCoil],
-          [75.8, 15.0, 1.04, SITE_Z_INDEX.propsFront, propSpriteIndex.barrier]
-        ],
-        core: [
-          [50.6, 15.2, 0.92, SITE_Z_INDEX.props, propSpriteIndex.toolbox],
-          [67.8, 15.0, 0.92, SITE_Z_INDEX.propsFront, propSpriteIndex.cableCoil],
-          [74.6, 15.0, 0.98, SITE_Z_INDEX.propsFront, propSpriteIndex.barrier]
-        ],
-        rocket: [
-          [58.2, 15.0, 0.98, SITE_Z_INDEX.propsFront, propSpriteIndex.barrier],
-          [72.0, 15.0, 0.96, SITE_Z_INDEX.propsFront, propSpriteIndex.toolbox],
-          [78.8, 15.0, 0.96, SITE_Z_INDEX.propsFront, propSpriteIndex.cableCoil]
-        ]
-      };
-      const stage = propSets[activeStage] || propSets.foundation;
-      document.getElementById("sitePropsLayer").innerHTML = stage.map(([x, y, scale, z, spriteIndex]) => {
-        return `
-          <span class="prop" style="--x:${x}%;--y:${y}%;--prop-scale:${scale};--z:${z};">
-            <i class="prop-sprite" aria-hidden="true" style="--prop-index:${spriteIndex};"></i>
-          </span>
-        `;
-      }).join("");
+      document.getElementById("sitePropsLayer").innerHTML = "";
     }
 
     function getPickupPointForCargo(cargoType) {
@@ -5094,9 +5390,29 @@
         { x: 10.4, y: 7.2, scale: 1.02, z: 13, prop: propSpriteIndex.toolbox },
         { x: 27.6, y: 7.8, scale: 1.02, z: 13, prop: propSpriteIndex.boltsBox }
       ];
+      const depotPropsByStage = {
+        foundation: [
+          { x: 39.2, y: 6.8, scale: 0.98, z: 13, prop: propSpriteIndex.rebarStack },
+          { x: 50.8, y: 7.0, scale: 1.02, z: 13, prop: propSpriteIndex.barrier }
+        ],
+        tower: [
+          { x: 38.4, y: 6.8, scale: 0.96, z: 13, prop: propSpriteIndex.plateStack },
+          { x: 49.8, y: 7.0, scale: 0.98, z: 13, prop: propSpriteIndex.cableCoil },
+          { x: 61.0, y: 6.9, scale: 1.02, z: 13, prop: propSpriteIndex.barrier }
+        ],
+        core: [
+          { x: 39.2, y: 6.8, scale: 0.98, z: 13, prop: propSpriteIndex.cableCoil },
+          { x: 50.8, y: 7.0, scale: 1.02, z: 13, prop: propSpriteIndex.barrier }
+        ],
+        rocket: [
+          { x: 38.4, y: 6.8, scale: 1.02, z: 13, prop: propSpriteIndex.barrier },
+          { x: 49.8, y: 7.0, scale: 0.98, z: 13, prop: propSpriteIndex.toolbox },
+          { x: 61.0, y: 6.9, scale: 0.98, z: 13, prop: propSpriteIndex.cableCoil }
+        ]
+      };
       const activePool = cargoPoolsByStage[stage] || cargoPoolsByStage.foundation;
       return {
-        crates: sharedCrates,
+        crates: sharedCrates.concat(depotPropsByStage[stage] || depotPropsByStage.foundation),
         materials: nestPickupPoints.map((point, index) => {
           const preferredCargo = point.cargoTypes.find((cargo) => activePool.includes(cargo)) || point.cargoTypes[0];
           return {
@@ -5206,8 +5522,7 @@
     function renderConstructionVisuals() {
       syncDerivedProgress();
       const stage = getBuildStageKey();
-      const stageProgress = gameState.progress[stage];
-      document.getElementById("constructionStage").innerHTML = renderConstructionStage(stage, stageProgress);
+      document.getElementById("constructionStage").innerHTML = renderConstructionStage(gameState.buildProgress);
       updateConstructionStageScale();
 
       renderSiteProps(stage);
@@ -5227,29 +5542,44 @@
       return WHITE_NOISE_TRACKS[type]?.label || "白噪音";
     }
 
-    function getConstructionHitMap(frameKey) {
-      if (constructionHitCache.has(frameKey)) {
-        return constructionHitCache.get(frameKey);
+    function getConstructionHitMap(frameConfig) {
+      if (!frameConfig) return null;
+      if (constructionHitCache.has(frameConfig.key)) {
+        return constructionHitCache.get(frameConfig.key);
       }
       if (constructionHitMapReadBlocked) {
         return null;
       }
-      const image = assetImages[frameKey];
+      const image = assetImages[frameConfig.sheetKey];
       if (!image) return null;
+      const sourceWidth = image.naturalWidth || image.width;
+      const sourceHeight = image.naturalHeight || image.height;
+      const sourceCellWidth = sourceWidth / Math.max(1, frameConfig.cols || 10);
+      const sourceCellHeight = sourceHeight;
       const canvas = document.createElement("canvas");
-      canvas.width = image.naturalWidth || image.width;
-      canvas.height = image.naturalHeight || image.height;
+      canvas.width = Math.round(sourceCellWidth);
+      canvas.height = Math.round(sourceCellHeight);
       const context = canvas.getContext("2d", { willReadFrequently: true });
       if (!context) return null;
       try {
-        context.drawImage(image, 0, 0);
+        context.drawImage(
+          image,
+          sourceCellWidth * frameConfig.subFrameIndex,
+          0,
+          sourceCellWidth,
+          sourceCellHeight,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         const cacheEntry = {
           width: canvas.width,
           height: canvas.height,
           data: imageData.data
         };
-        constructionHitCache.set(frameKey, cacheEntry);
+        constructionHitCache.set(frameConfig.key, cacheEntry);
         return cacheEntry;
       } catch (error) {
         constructionHitMapReadBlocked = true;
@@ -5262,29 +5592,34 @@
       if (!hitMap) return null;
       const originX = clamp(Math.round(startX), 0, hitMap.width - 1);
       const originY = clamp(Math.round(startY), 0, hitMap.height - 1);
-      let best = null;
-      let bestDistance = Number.POSITIVE_INFINITY;
-      for (let y = Math.max(0, originY - radius); y <= Math.min(hitMap.height - 1, originY + radius); y += 1) {
-        for (let x = Math.max(0, originX - radius); x <= Math.min(hitMap.width - 1, originX + radius); x += 1) {
-          const offset = ((y * hitMap.width) + x) * 4 + 3;
-          if ((hitMap.data[offset] || 0) < 18) continue;
-          const distanceToOrigin = Math.hypot(x - originX, y - originY);
-          if (distanceToOrigin < bestDistance) {
-            bestDistance = distanceToOrigin;
-            best = { x, y };
+      const searchRadii = [radius, Math.max(hitMap.width, hitMap.height)];
+      for (let ri = 0; ri < searchRadii.length; ri += 1) {
+        const r = searchRadii[ri];
+        let best = null;
+        let bestDistance = Number.POSITIVE_INFINITY;
+        for (let y = Math.max(0, originY - r); y <= Math.min(hitMap.height - 1, originY + r); y += 1) {
+          for (let x = Math.max(0, originX - r); x <= Math.min(hitMap.width - 1, originX + r); x += 1) {
+            const offset = ((y * hitMap.width) + x) * 4 + 3;
+            if ((hitMap.data[offset] || 0) < 18) continue;
+            const distanceToOrigin = Math.hypot(x - originX, y - originY);
+            if (distanceToOrigin < bestDistance) {
+              bestDistance = distanceToOrigin;
+              best = { x, y };
+            }
           }
         }
+        if (best) return best;
       }
-      return best;
+      return null;
     }
 
     function snapConstructionLocalPointToImage(stage, localPoint) {
       if (stage !== getBuildStageKey()) return localPoint;
-      const frameConfig = getConstructionFrameConfig(stage, gameState.progress[stage]);
+      const frameConfig = getConstructionFrameConfig(gameState.buildProgress);
       const stageImage = document.querySelector(".construction-stage-image");
       const anchor = document.getElementById("constructionAnchor");
       if (!frameConfig || !stageImage || !anchor) return localPoint;
-      const hitMap = getConstructionHitMap(frameConfig.key);
+      const hitMap = getConstructionHitMap(frameConfig);
       if (!hitMap) return localPoint;
       const anchorRect = anchor.getBoundingClientRect();
       const imageRect = stageImage.getBoundingClientRect();
@@ -5315,15 +5650,23 @@
       };
     }
 
-    function getConstructionTargets(stage) {
-      const offsets = constructionTargetOffsets[stage] || constructionTargetOffsets.foundation;
+    function getConstructionTargetGroup(stage, subFrameIndex = getConstructionFrameInfo(gameState.buildProgress).subFrameIndex) {
+      const groups = constructionRouteTargets[stage] || constructionRouteTargets.foundation;
+      return groups.find((group) => subFrameIndex >= group.frameMin && subFrameIndex <= group.frameMax) || groups[0];
+    }
+
+    function getConstructionTargets(stage, subFrameIndex = getConstructionFrameInfo(gameState.buildProgress).subFrameIndex) {
+      const group = getConstructionTargetGroup(stage, subFrameIndex);
+      const offsets = group?.points || constructionRouteTargets.foundation[0].points;
       return offsets.map((target) => ({
         ...toScenePoint(snapConstructionLocalPointToImage(stage, {
           x: CONSTRUCTION_STAGE_LAYOUT.anchorX + target.x,
           y: CONSTRUCTION_STAGE_LAYOUT.groundY + target.y
         })),
+        id: target.id,
         cargo: target.cargo,
-        routeProfile: target.routeProfile
+        routeProfile: target.routeProfile,
+        allowedTaskTypes: target.allowedTaskTypes || ["carry", "deliver"]
       }));
     }
 
@@ -5368,19 +5711,19 @@
         tower: {
           kind: "spark",
           coords: [
-            [41, 27, 3, 4.2], [50, 42, 3, 4.6], [60, 51, 3, 5], [68, 59, 3, 5.2]
+            [41, -4, 3, 4.2], [50, 6, 3, 4.6], [60, 14, 3, 5], [68, 22, 3, 5.2]
           ]
         },
         core: {
           kind: "energy",
           coords: [
-            [54, 27, 3, 4.8], [58, 35, 4, 5.5], [63, 31, 3, 5.2], [68, 27, 3, 4.7]
+            [54, -4, 3, 4.8], [58, 6, 4, 5.5], [63, 3, 3, 5.2], [68, -2, 3, 4.7]
           ]
         },
         rocket: {
           kind: "star",
           coords: [
-            [72, 21, 3, 5.8], [77, 34, 3, 5.2], [80, 49, 3, 5.6], [84, 58, 4, 6.2]
+            [72, -4, 3, 5.8], [77, 10, 3, 5.2], [80, 22, 3, 5.6], [84, 30, 4, 6.2]
           ]
         }
       };
@@ -5753,7 +6096,7 @@
     function getLaunchBaseUrl() {
       return criticalAssetStatus.launchBaseCoreComplete
         ? bitmapAssetPaths.launch.launchBaseCoreComplete
-        : bitmapAssetPaths.construction.frames.construction12;
+        : bitmapAssetPaths.construction.sheets.core;
     }
 
     async function startLaunchSequence(isReplay = false) {
@@ -6201,6 +6544,7 @@
       let cargoStart = 0.22;
       let cargoEnd = 0.7;
       let cargoHideAt = 0.76;
+      let deliveryTarget = target;
       const localTarget = {
         x: clamp(((target.x - LAUNCH_SITE_LAYOUT.left) / LAUNCH_SITE_LAYOUT.width) * 100, 0, 100),
         y: clamp(((target.y - LAUNCH_SITE_LAYOUT.bottom) / LAUNCH_SITE_LAYOUT.height) * 100, 0, 100)
@@ -6223,19 +6567,26 @@
           { x: start.x, y: start.y, at: 1 }
         ]);
       } else if (target.routeProfile === "tower") {
+        deliveryTarget = {
+          ...target,
+          x: clamp(target.x, 43, 69),
+          y: clamp(target.y, 5, 40)
+        };
+        const approachX = clamp(deliveryTarget.x - 7.2 + lane * 0.35, 34, 67);
+        const climbX = clamp(deliveryTarget.x - 1.8 + lane * 0.12, 42, 68);
         points = withTravelPoints([
           { x: start.x, y: start.y, at: 0 },
           { x: queue.x, y: queue.y, at: 0.08 },
           { x: depot.x, y: depot.y, at: pickupAt },
           { x: 29.2 + lane * 0.5, y: 18.6, at: cargoStart },
-          { x: 39.8 + lane * 0.3, y: 18.6, at: 0.34 },
-          { x: 47.4 + lane * 0.2, y: 18.6, at: 0.42 },
-          { x: 49.6 + lane * 0.12, y: clamp(target.y - 7.6, 20.8, 46), at: 0.52 },
-          { x: clamp(target.x - 3.2 + arc * 0.2, 50, 62), y: clamp(target.y - 3.2, 22, 49), at: 0.62 },
-          { x: clamp(target.x - 1.2, 51, 63), y: target.y, at: 0.67 },
-          { x: target.x, y: target.y, at: cargoEnd },
-          { x: clamp(target.x - 2.8, 48, 62), y: target.y, at: cargoHideAt },
-          { x: 49.8, y: 19.2, at: 0.82 },
+          { x: 38.8 + lane * 0.28, y: 18.6, at: 0.34 },
+          { x: approachX, y: 18.7, at: 0.42 },
+          { x: climbX, y: clamp(deliveryTarget.y - 14, 5, 26), at: 0.52 },
+          { x: climbX, y: clamp(deliveryTarget.y - 6.2, 5, 40), at: 0.62 },
+          { x: clamp(deliveryTarget.x - 0.8 + arc * 0.12, 42, 69), y: deliveryTarget.y, at: 0.67 },
+          { x: deliveryTarget.x, y: deliveryTarget.y, at: cargoEnd },
+          { x: clamp(deliveryTarget.x - 2.8, 41, 66), y: deliveryTarget.y, at: cargoHideAt },
+          { x: approachX, y: 19.2, at: 0.82 },
           { x: 27.2 + lane, y: 18.4, at: 0.92 },
           { x: queue.x, y: queue.y, at: 0.96 },
           { x: start.x, y: start.y, at: 1 }
@@ -6248,8 +6599,8 @@
           { x: 29.6 + lane * 0.5, y: 18.8, at: cargoStart },
           { x: 42.4 + lane * 0.2, y: 18.8, at: 0.34 },
           { x: 53.8 + lane * 0.16, y: 18.8, at: 0.5 },
-          { x: 58.6 + lane * 0.1, y: clamp(target.y - 4.5, 19.6, 26.8), at: 0.6 },
-          { x: clamp(target.x - 3.2 + arc * 0.2, 55, 68.4), y: clamp(target.y - 1.6, 20.5, 28.2), at: 0.66 },
+          { x: 58.6 + lane * 0.1, y: clamp(target.y - 4.5, 4, 28), at: 0.6 },
+          { x: clamp(target.x - 3.2 + arc * 0.2, 55, 68.4), y: clamp(target.y - 1.6, 4, 32), at: 0.66 },
           { x: clamp(target.x - 1.1, 56, 69.2), y: target.y, at: 0.69 },
           { x: target.x, y: target.y, at: cargoEnd },
           { x: clamp(target.x - 2.8, 52, 66), y: target.y, at: cargoHideAt },
@@ -6266,8 +6617,8 @@
           { x: 30.1 + lane * 0.48, y: 18.8, at: cargoStart },
           { x: 44.4 + lane * 0.18, y: 18.8, at: 0.36 },
           { x: 58.2 + lane * 0.15, y: 18.8, at: 0.52 },
-          { x: 63.8 + lane * 0.1, y: clamp(localTarget.y - 6.4, 18.8, 30.8), at: 0.6 },
-          { x: clamp(target.x - 2.6 + arc * 0.18, 62, 71), y: clamp(target.y - 3.2, 19.6, 35.4), at: 0.66 },
+          { x: 63.8 + lane * 0.1, y: clamp(localTarget.y - 6.4, -16, 26), at: 0.6 },
+          { x: clamp(target.x - 2.6 + arc * 0.18, 62, 71), y: clamp(target.y - 3.2, 4, 40), at: 0.66 },
           { x: clamp(target.x - 1.2, 63, 71), y: target.y, at: 0.69 },
           { x: target.x, y: target.y, at: cargoEnd },
           { x: clamp(target.x - 2.8, 60, 69), y: target.y, at: cargoHideAt },
@@ -6285,7 +6636,8 @@
         cargoStart,
         cargoEnd,
         cargoVisibleFrom: cargoStart,
-        cargoHideAt
+        cargoHideAt,
+        deliveryTarget
       };
     }
 
@@ -6311,14 +6663,41 @@
       cargoElement.style.setProperty("--cargo-scale", cargoDrops[cargoType]?.scale ?? 0.34);
     }
 
+    function chooseWorkerTarget(targets, worker, index) {
+      if (!targets.length) return null;
+      const occupancy = new Map();
+      antWorkers.forEach((other) => {
+        if (other === worker || !other.activeTarget?.id) return;
+        occupancy.set(other.activeTarget.id, (occupancy.get(other.activeTarget.id) || 0) + 1);
+      });
+      const shuffled = targets
+        .map((target, targetIndex) => ({
+          target,
+          score: (occupancy.get(target.id) || 0) * 12
+            + Math.abs(((index + (worker.completedTrips || 0)) % targets.length) - targetIndex)
+            + Math.random() * 2.2
+        }))
+        .sort((a, b) => a.score - b.score);
+      return shuffled[0].target;
+    }
+
+    function chooseTaskTypeForTarget(target, worker, index) {
+      const allowed = target.allowedTaskTypes?.length ? target.allowedTaskTypes : ["carry", "deliver"];
+      const offset = (worker.completedTrips || 0) + index + Math.floor(Math.random() * allowed.length);
+      return allowed[offset % allowed.length];
+    }
+
     function assignWorkerTarget(worker, index) {
-      const stage = getBuildStageKey();
-      const targets = getConstructionTargets(stage);
+      const frameInfo = getConstructionFrameInfo(gameState.buildProgress);
+      const stage = frameInfo.stageKey;
+      const targets = getConstructionTargets(stage, frameInfo.subFrameIndex);
       const offset = worker.completedTrips || 0;
-      const target = targets[(index + offset) % targets.length];
+      const target = chooseWorkerTarget(targets, worker, index) || targets[(index + offset) % targets.length];
       const cargoChoice = chooseCargoForStage(stage, index, offset, target.cargo);
       worker.activeBuildStage = stage;
       worker.activeTarget = { ...target, cargo: cargoChoice.cargo, pickupPoint: cargoChoice.pickupPoint };
+      worker.assignedFrameIndex = frameInfo.frameIndex;
+      worker.taskType = chooseTaskTypeForTarget(target, worker, index);
       worker.pickupPointId = cargoChoice.pickupPoint.id;
       worker.routeProfile = target.routeProfile;
       worker.route = createWorkRouteForTarget(worker.activeTarget, index);
@@ -6412,11 +6791,14 @@
           scale: ant.scale,
           activeBuildStage: initialStage,
           activeTarget: { ...initialTarget, cargo: initialCargo.cargo, pickupPoint: initialCargo.pickupPoint },
+          assignedFrameIndex: getConstructionFrameInfo(gameState.buildProgress).frameIndex,
           workerType,
           shouldWork: workerType === "builder",
           celebrationAction: celebrationSpot.action,
           celebrationPoint: pointToPixels(celebrationSpot),
           mode: "rest",
+          taskType: "return",
+          miniEvent: null,
           subAction: "idle",
           progress: 0,
           lastProgress: 0,
@@ -6462,53 +6844,215 @@
       antAnimationState.softRetreat = antAnimationState.noisyLowSpeedSeconds >= 1;
     }
 
+    function scheduleNextMiniEvent(nowSeconds = performance.now() / 1000) {
+      antMiniEventState.nextAt = nowSeconds + random(20, 45);
+    }
+
+    function canRunMiniEvents() {
+      return gameState.phase === "running"
+        && gameState.volume.state !== "loud"
+        && !antAnimationState.celebrationMode
+        && !antAnimationState.returningToNest
+        && !gameState.launchInProgress
+        && gameState.buildProgress < 100;
+    }
+
+    function clearWorkerMiniEvent(worker) {
+      worker.miniEvent = null;
+      if (worker.element) {
+        delete worker.element.dataset.miniEvent;
+      }
+    }
+
+    function clearAllMiniEvents() {
+      antWorkers.forEach(clearWorkerMiniEvent);
+    }
+
+    function getMiniEventTypesForStage(stage) {
+      const base = ["sit", "chat", "stargaze", "flag", "wrongMaterial", "assist"];
+      if (stage === "core") base.push("inspect");
+      if (stage === "rocket") base.push("rocketGaze");
+      if (Math.random() < 0.08) base.push("drowsy");
+      return base;
+    }
+
+    function getMiniEventPoint(worker, type, partner = null) {
+      const anchor = worker.activeTarget || getConstructionFeedbackAnchor(getBuildStageKey());
+      if (partner) {
+        return {
+          x: clamp(((worker.x + partner.x) / 2 / Math.max(1, antAnimationState.width)) * 100 + random(-1.2, 1.2), 28, 78),
+          y: clamp(((worker.y + partner.y) / 2 / Math.max(1, antAnimationState.height)) * 100 + random(-0.8, 1.2), 18, 74)
+        };
+      }
+      if (type === "stargaze") {
+        return { x: clamp(anchor.x - 8 + random(-2, 2), 28, 64), y: clamp(anchor.y + random(-1, 1), 18, 36) };
+      }
+      if (type === "rocketGaze") {
+        return { x: clamp(anchor.x - 8 + random(-1.5, 1.5), 58, 75), y: clamp(anchor.y - 4 + random(-0.8, 0.8), 18, 42) };
+      }
+      return {
+        x: clamp(anchor.x + random(-2.4, 2.4), 28, 78),
+        y: clamp(anchor.y + random(-1.2, 1.2), 18, 74)
+      };
+    }
+
+    function startWorkerMiniEvent(worker, type, point, duration = random(3, 5)) {
+      worker.miniEvent = {
+        type,
+        remaining: duration,
+        point
+      };
+      worker.pauseTimer = Math.max(worker.pauseTimer, 0.12);
+      worker.pickupHold = 0;
+      worker.deliveryHold = 0;
+      if (type === "assist" || type === "wrongMaterial") {
+        worker.cargoOpacity = Math.max(worker.cargoOpacity, 0.8);
+      }
+    }
+
+    function spawnStarlightBug() {
+      const effects = document.getElementById("constructionEffects");
+      if (!effects) return;
+      const bug = document.createElement("span");
+      bug.className = "star-bug";
+      bug.style.setProperty("--bug-y", `${random(47, 68).toFixed(1)}%`);
+      bug.style.setProperty("--bug-dur", `${random(7, 10).toFixed(1)}s`);
+      effects.appendChild(bug);
+      window.setTimeout(() => bug.remove(), 11000);
+    }
+
+    function maybeStartMiniEvent(timeSeconds) {
+      if (!canRunMiniEvents()) {
+        scheduleNextMiniEvent(timeSeconds);
+        clearAllMiniEvents();
+        return;
+      }
+      if (!antMiniEventState.nextAt) {
+        scheduleNextMiniEvent(timeSeconds);
+      }
+      if (timeSeconds < antMiniEventState.nextAt) return;
+      scheduleNextMiniEvent(timeSeconds);
+
+      if (timeSeconds > antMiniEventState.starBugNextAt && Math.random() < 0.18) {
+        spawnStarlightBug();
+        antMiniEventState.starBugNextAt = timeSeconds + random(80, 140);
+      }
+
+      const candidates = antWorkers.filter((worker) => (
+        worker.shouldWork !== false
+        && worker.mode === "work"
+        && !worker.miniEvent
+        && worker.progress < 0.92
+        && worker.progress > 0.08
+        && worker.pickupHold <= 0
+        && worker.deliveryHold <= 0
+      ));
+      if (!candidates.length) return;
+
+      const stage = getBuildStageKey();
+      const eventTypes = getMiniEventTypesForStage(stage);
+      const type = eventTypes[Math.floor(Math.random() * eventTypes.length)] || "sit";
+      const needsPartner = type === "chat" || type === "assist" || type === "drowsy";
+      const first = candidates[Math.floor(Math.random() * candidates.length)];
+      if (needsPartner && candidates.length >= 2) {
+        const partner = candidates.find((worker) => worker !== first) || candidates[0];
+        const point = getMiniEventPoint(first, type, partner);
+        startWorkerMiniEvent(first, type, point);
+        startWorkerMiniEvent(partner, type === "drowsy" ? "chat" : type, point, random(3, 4.5));
+        return;
+      }
+      startWorkerMiniEvent(first, type, getMiniEventPoint(first, type));
+    }
+
+    function updateWorkerMiniEvent(worker, deltaSeconds) {
+      if (!worker.miniEvent) return false;
+      if (!canRunMiniEvents()) {
+        clearWorkerMiniEvent(worker);
+        return false;
+      }
+      const target = pointToPixels(worker.miniEvent.point);
+      moveToward(worker, target, worker.resumeSpeed * 0.62 * deltaSeconds);
+      if (distance(worker, target) < 5) {
+        worker.miniEvent.remaining = Math.max(0, worker.miniEvent.remaining - deltaSeconds);
+      }
+      if (worker.miniEvent.remaining <= 0) {
+        clearWorkerMiniEvent(worker);
+        return false;
+      }
+      return true;
+    }
+
     function updateAntSubAction(worker) {
       if (worker.mode === "celebrate") {
         worker.subAction = worker.celebrationAction || "clap";
+        worker.taskType = "idleMiniEvent";
+        return;
+      }
+      if (worker.miniEvent) {
+        worker.taskType = "idleMiniEvent";
+        if (worker.miniEvent.type === "inspect") {
+          worker.subAction = "deliver";
+        } else if (worker.miniEvent.type === "assist" || worker.miniEvent.type === "wrongMaterial") {
+          worker.subAction = "carry";
+          worker.taskType = "assist";
+        } else {
+          worker.subAction = "idle";
+        }
         return;
       }
       if (worker.mode === "patrol") {
         const segment = getRouteSegment(worker.patrolRoute, worker.patrolProgress);
         const segmentDeltaY = Math.abs((segment?.to?.y ?? 0) - (segment?.from?.y ?? 0));
         worker.subAction = segmentDeltaY > 3 ? "climb" : "return";
+        worker.taskType = worker.subAction === "climb" ? "climb" : "return";
         return;
       }
       if (worker.mode === "rest") {
         worker.subAction = "idle";
+        worker.taskType = "idleMiniEvent";
         return;
       }
       if (worker.mode === "retreat" || worker.mode === "resume") {
         worker.subAction = "return";
+        worker.taskType = "return";
         return;
       }
       if (worker.deliveryHold > 0) {
         worker.subAction = "deliver";
+        worker.taskType = worker.taskType === "inspect" ? "inspect" : "deliver";
         return;
       }
       if (worker.pickupHold > 0) {
         worker.subAction = "idle";
+        worker.taskType = "pickup";
         return;
       }
       const segment = getRouteSegment(worker.route, worker.progress);
       const travelType = segment?.to?.travel || segment?.from?.travel || "walk";
       if (worker.progress < (worker.route.cargoVisibleFrom ?? worker.route.cargoStart ?? 0.2)) {
         worker.subAction = travelType === "jetpack" ? "climb" : "return";
+        worker.taskType = worker.subAction === "climb" ? "climb" : "return";
         return;
       }
       if (travelType === "jetpack") {
         worker.subAction = "climb";
+        worker.taskType = "climb";
         return;
       }
       if (worker.progress <= (worker.route.cargoHideAt ?? worker.route.cargoEnd)) {
         worker.subAction = "carry";
+        worker.taskType = worker.taskType === "assist" ? "assist" : "carry";
         return;
       }
       worker.subAction = "return";
+      worker.taskType = "return";
     }
 
     function getCargoTargetOpacity(worker) {
       if (worker.workerType === "patrol") return 0;
       if (worker.mode === "celebrate") return 0;
+      if (worker.miniEvent?.type === "assist" || worker.miniEvent?.type === "wrongMaterial") return 0.86;
+      if (worker.miniEvent) return 0;
       if (worker.mode !== "work" || gameState.volume.state === "loud") return 0;
       if (worker.progress < (worker.route.cargoVisibleFrom ?? worker.route.cargoStart ?? 0.2)) return 0;
       if (worker.progress >= (worker.route.cargoHideAt ?? 0.76) && worker.subAction !== "deliver") return 0;
@@ -6572,7 +7116,7 @@
       const target = worker.activeTarget || getConstructionTargets(stage)[0];
       worker.deliveryHold = 0.42;
       worker.pauseTimer = Math.max(worker.pauseTimer, 0.24);
-      spawnBuildFeedback(stage, target, worker.cargoType);
+      spawnBuildFeedback(stage, worker.route?.deliveryTarget || target, worker.cargoType);
     }
 
     function handleAntDelivery(worker) {
@@ -6590,6 +7134,7 @@
     function updateAntModeTransitions(worker, deltaSeconds) {
       if (antAnimationState.celebrationMode) {
         worker.mode = "celebrate";
+        clearWorkerMiniEvent(worker);
         worker.resumeTarget = null;
         worker.pickupHold = 0;
         worker.deliveryHold = 0;
@@ -6604,6 +7149,7 @@
         worker.retreatDelayRemaining = Math.max(0, worker.retreatDelayRemaining - deltaSeconds);
         if (worker.retreatDelayRemaining === 0) {
           worker.mode = "retreat";
+          clearWorkerMiniEvent(worker);
           worker.resumeTarget = null;
           worker.deliveryHold = 0;
           worker.pauseTimer = 0;
@@ -6613,6 +7159,7 @@
       if (antAnimationState.returningToNest) {
         if (worker.mode !== "rest" && worker.mode !== "retreat" && worker.mode !== "celebrate") {
           worker.mode = "retreat";
+          clearWorkerMiniEvent(worker);
           worker.resumeTarget = null;
           worker.deliveryHold = 0;
           worker.pauseTimer = 0;
@@ -6622,6 +7169,7 @@
 
       if (worker.workerType === "patrol") {
         worker.mode = "patrol";
+        clearWorkerMiniEvent(worker);
         worker.resumeTarget = null;
         worker.pickupHold = 0;
         worker.deliveryHold = 0;
@@ -6659,6 +7207,13 @@
       }
 
       if (worker.mode === "work") {
+        const hadMiniEvent = !!worker.miniEvent;
+        if (updateWorkerMiniEvent(worker, deltaSeconds)) {
+          worker.lastProgress = worker.progress;
+          updateAntSubAction(worker);
+          return { x: worker.x, y: worker.y };
+        }
+
         if (
           !worker.pickupTriggered
           && worker.lastProgress < (worker.route.pickupAt ?? 0.16)
@@ -6700,8 +7255,13 @@
         }
         handleAntDelivery(worker);
         const routePoint = pointToPixels(getRoutePoint(worker.route, worker.progress));
-        worker.x += (routePoint.x - worker.x) * 0.18;
-        worker.y += (routePoint.y - worker.y) * 0.18;
+        if (hadMiniEvent) {
+          worker.x = routePoint.x;
+          worker.y = routePoint.y;
+        } else {
+          worker.x += (routePoint.x - worker.x) * 0.18;
+          worker.y += (routePoint.y - worker.y) * 0.18;
+        }
         updateAntSubAction(worker);
         return { x: worker.x, y: worker.y };
       }
@@ -6798,6 +7358,8 @@
             worker.element.style.transform = `translate(${renderPoint.x}px, ${-renderPoint.y}px) scale(${worker.scale}) scaleX(${worker.facing})`;
             worker.element.style.zIndex = String(SITE_Z_INDEX.antMidground);
             worker.element.dataset.subAction = worker.subAction;
+            worker.element.dataset.taskType = worker.taskType || worker.subAction;
+            delete worker.element.dataset.miniEvent;
             worker.element.style.setProperty("--ant-row", antSpriteRows[worker.subAction] ?? antSpriteRows.return);
             worker.element.style.setProperty("--ant-frame", getAntAnimationFrame(worker, index, timeSeconds));
             worker.element.classList.remove("resting", "celebrating", "paused");
@@ -6809,6 +7371,7 @@
             return;
           }
           worker.mode = "rest";
+          clearWorkerMiniEvent(worker);
           worker.subAction = "idle";
           worker.cargoOpacity = 0;
           const jitterX = Math.sin(timeSeconds * 1.05 + worker.restJitterSeed) * 0.55;
@@ -6818,6 +7381,7 @@
           worker.element.style.transform = `translate(${renderX}px, ${-renderY}px) scale(${worker.scale}) scaleX(${worker.facing})`;
           worker.element.style.zIndex = String(SITE_Z_INDEX.antMidground);
           worker.element.dataset.subAction = "idle";
+          worker.element.dataset.taskType = "idleMiniEvent";
           worker.element.style.setProperty("--ant-row", antSpriteRows.idle);
           worker.element.style.setProperty("--ant-frame", getAntAnimationFrame(worker, index, timeSeconds));
           worker.element.classList.toggle("paused", gameState.phase === "paused");
@@ -6833,6 +7397,7 @@
         return;
       }
       if (gameState.phase === "paused" && !antAnimationState.returningToNest) {
+        clearAllMiniEvents();
         antWorkers.forEach((worker) => {
           worker.element.classList.add("paused");
         });
@@ -6840,6 +7405,7 @@
       }
       updateSoftRetreatState(deltaSeconds);
       const timeSeconds = performance.now() / 1000;
+      maybeStartMiniEvent(timeSeconds);
       antWorkers.forEach((worker, index) => {
         const renderPoint = updateWorkerPosition(worker, index, deltaSeconds, timeSeconds);
         const deltaX = renderPoint.x - worker.lastX;
@@ -6849,6 +7415,12 @@
         worker.element.style.transform = `translate(${renderPoint.x}px, ${-renderPoint.y}px) scale(${worker.scale}) scaleX(${worker.facing})`;
         worker.element.style.zIndex = worker.subAction === "climb" ? String(SITE_Z_INDEX.antForeground) : String(SITE_Z_INDEX.antMidground);
         worker.element.dataset.subAction = worker.subAction;
+        worker.element.dataset.taskType = worker.taskType || worker.subAction;
+        if (worker.miniEvent) {
+          worker.element.dataset.miniEvent = worker.miniEvent.type;
+        } else {
+          delete worker.element.dataset.miniEvent;
+        }
         worker.element.style.setProperty(
           "--ant-row",
           worker.mode === "celebrate"
@@ -7000,7 +7572,7 @@
     }
 
     function renderVolumePanel() {
-      const percent = Math.round(gameState.volume.smoothVolume);
+      const displayPercent = Math.round(gameState.volume.avgVolume);
       const levelKey = gameState.volume.state;
       const level = volumeLevels[levelKey];
       const panel = document.querySelector(".volume-panel");
@@ -7015,9 +7587,9 @@
       const avgVolume = Math.round(gameState.volume.avgVolume);
       const currentEfficiency = `${gameState.volume.currentEfficiency.toFixed(1)}x`;
       const visualEfficiency = `${gameState.volume.visualEfficiency.toFixed(1)}x`;
-      if (volumeRenderCache.percent !== percent) {
-        nodes.value.textContent = `${percent}%`;
-        volumeRenderCache.percent = percent;
+      if (volumeRenderCache.percent !== displayPercent) {
+        nodes.value.textContent = `${displayPercent}%`;
+        volumeRenderCache.percent = displayPercent;
       }
       if (volumeRenderCache.avgVolume !== avgVolume) {
         nodes.avg.textContent = `${avgVolume}%`;
@@ -7035,7 +7607,7 @@
         volumeRenderCache.visualEfficiency = visualEfficiency;
       }
 
-      const activeBars = Math.max(1, Math.round((percent / 100) * 16));
+      const activeBars = Math.max(1, Math.round((displayPercent / 100) * 16));
       const toneClass = levelKey === "loud" ? " alert" : levelKey === "fluctuating" ? " warn" : "";
       const meterBars = ensureMeterBars();
       if (meterBars && (volumeRenderCache.activeBars !== activeBars || volumeRenderCache.toneClass !== toneClass)) {
@@ -8017,13 +8589,14 @@
       }
     }
 
-    function addTestProgress() {
-      setBuildProgress(gameState.buildProgress + 5, { showMilestones: true, ignoreDailyCap: true });
+    function addTestProgress(amount = 1) {
+      const progressAmount = clamp(Number(amount) || 1, 1, 5);
+      setBuildProgress(gameState.buildProgress + progressAmount, { showMilestones: true, ignoreDailyCap: true });
       savePersistentState();
       if (gameState.launchReady || gameState.buildProgress >= 100) {
         setLiveNotice("星光火箭已准备就绪", getProgressNoticeMeta(), 6000);
       } else {
-        showToast("测试：工程进度 +5%");
+        showToast(`测试：工程进度 +${progressAmount}%`);
       }
     }
 
@@ -8402,7 +8975,9 @@
         document.querySelectorAll("[data-test-speed]").forEach((button) => {
           button.addEventListener("click", () => setTestSpeed(Number(button.dataset.testSpeed)));
         });
-        document.getElementById("testAddProgressButton").addEventListener("click", addTestProgress);
+        document.querySelectorAll("[data-test-progress]").forEach((button) => {
+          button.addEventListener("click", () => addTestProgress(Number(button.dataset.testProgress)));
+        });
         document.getElementById("testNextStageButton").addEventListener("click", jumpToNextTestStage);
         updateTestSpeedButtons();
       }
